@@ -2,6 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  /* Reset mark so our amber highlight classes aren't overridden */
+  mark {
+    background-color: transparent;
+    color: inherit;
+  }
+
+  /* Amber accent for native form controls */
+  input[type="radio"],
+  input[type="checkbox"] {
+    accent-color: #b45309;
+  }
+}
+
+@layer utilities {
+  /* Thin custom scrollbar for the form panel */
+  .scrollbar-form {
+    scrollbar-width: thin;
+    scrollbar-color: #d6d3d1 transparent;
+  }
+  .scrollbar-form::-webkit-scrollbar {
+    width: 4px;
+  }
+  .scrollbar-form::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-form::-webkit-scrollbar-thumb {
+    background-color: #d6d3d1;
+    border-radius: 2px;
+  }
+}
+
+/* ── Print ────────────────────────────────────────── */
 @media print {
   .no-print {
     display: none !important;
@@ -12,6 +45,7 @@
     height: auto !important;
     overflow: visible !important;
     background: white !important;
+    font-size: 11pt;
   }
 
   .print-panel {
@@ -19,14 +53,24 @@
     height: auto !important;
     overflow: visible !important;
     width: 100% !important;
+    background: white !important;
   }
 
   .print-full {
     width: 100% !important;
     max-width: none !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 0.5in 1in !important;
     box-shadow: none !important;
     border-radius: 0 !important;
+    background: white !important;
+  }
+
+  /* Ensure all text prints in black */
+  mark {
+    background: none !important;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 }

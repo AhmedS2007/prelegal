@@ -10,45 +10,80 @@ export default function Home() {
   const [formData, setFormData] = useState<NDAFormData>(defaultFormData);
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-slate-50">
-      {/* Header */}
-      <header className="no-print bg-white border-b border-slate-200 shrink-0 flex items-center justify-between px-6 py-3">
-        <div>
-          <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wider leading-none">
-            Prelegal
-          </p>
-          <h1 className="text-base font-semibold text-slate-900">
-            Mutual NDA Creator
-          </h1>
-        </div>
+    <div className="h-screen flex flex-col overflow-hidden bg-stone-100">
+      {/* ── Header ── */}
+      <header className="no-print bg-stone-950 shrink-0 flex items-center justify-between px-6 py-0 h-14">
+        {/* Wordmark */}
         <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-400">Common Paper v1.0</span>
+          <span
+            className="w-2.5 h-2.5 rounded-[2px] bg-amber-500 shrink-0"
+            aria-hidden="true"
+          />
+          <div>
+            <span className="text-[10px] font-semibold tracking-[0.18em] uppercase text-amber-500 leading-none block">
+              Prelegal
+            </span>
+            <span className="text-[13px] font-medium text-stone-200 leading-tight block">
+              Mutual NDA Creator
+            </span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2.5">
+          <span className="text-[10px] text-stone-600 tracking-wide mr-1">
+            Common Paper v1.0
+          </span>
           <button
             onClick={() => downloadMarkdown(formData)}
-            className="flex items-center gap-1.5 border border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 text-sm px-4 py-2 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 border border-stone-700 hover:border-stone-500 text-stone-400 hover:text-stone-200 text-[12px] font-medium px-3.5 py-1.5 rounded transition-all duration-150"
           >
-            <span>↓</span>
-            <span>Download .md</span>
+            <svg
+              className="w-3 h-3"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
+              />
+            </svg>
+            Export .md
           </button>
           <button
             onClick={() => window.print()}
-            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white text-[12px] font-semibold px-3.5 py-1.5 rounded transition-colors duration-150"
           >
-            <span>⎙</span>
-            <span>Print / Save PDF</span>
+            <svg
+              className="w-3 h-3"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+              />
+            </svg>
+            Save PDF
           </button>
         </div>
       </header>
 
-      {/* Two-column layout */}
+      {/* ── Two-column layout ── */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left: Form */}
-        <div className="no-print w-[420px] shrink-0 overflow-y-auto border-r border-slate-200 bg-slate-50">
+        {/* Left — Form */}
+        <div className="no-print w-[400px] shrink-0 overflow-y-auto scrollbar-form bg-[#f7f4ef] border-r border-stone-200">
           <NDAForm value={formData} onChange={setFormData} />
         </div>
 
-        {/* Right: Live preview */}
-        <div className="print-panel flex-1 overflow-y-auto bg-slate-100">
+        {/* Right — Live document preview */}
+        <div className="print-panel flex-1 overflow-y-auto bg-stone-200/70">
           <NDAPreview data={formData} />
         </div>
       </div>

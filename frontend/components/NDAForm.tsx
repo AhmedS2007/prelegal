@@ -7,6 +7,124 @@ interface NDAFormProps {
   onChange: (data: NDAFormData) => void;
 }
 
+/* ── Shared field components ───────────────────────── */
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="block text-[11px] font-medium text-stone-500 uppercase tracking-[0.07em] mb-1.5">
+      {children}
+    </label>
+  );
+}
+
+function TextInput({
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+}) {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full bg-transparent border-0 border-b border-stone-200 pb-2 pt-0.5 text-[13px] text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-amber-600 transition-colors duration-150"
+    />
+  );
+}
+
+function NumberInput({
+  value,
+  onChange,
+  min,
+  max,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+}) {
+  return (
+    <input
+      type="number"
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      min={min}
+      max={max}
+      className="w-14 bg-white border border-stone-200 rounded text-center text-[13px] text-stone-800 py-1 px-2 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600/20 transition-all duration-150"
+    />
+  );
+}
+
+function RadioOption({
+  name,
+  checked,
+  onChange,
+  children,
+}: {
+  name: string;
+  checked: boolean;
+  onChange: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="flex items-start gap-3 cursor-pointer select-none group">
+      <div className="relative flex-shrink-0 mt-0.5">
+        <input
+          type="radio"
+          name={name}
+          checked={checked}
+          onChange={onChange}
+          className="peer absolute inset-0 opacity-0 w-4 h-4 cursor-pointer"
+        />
+        <div className="w-4 h-4 rounded-full border border-stone-300 bg-white peer-checked:border-amber-600 group-hover:border-stone-400 transition-colors duration-150" />
+        <div className="absolute top-[3px] left-[3px] w-[10px] h-[10px] rounded-full bg-amber-600 scale-0 peer-checked:scale-100 transition-transform duration-150" />
+      </div>
+      <div className="flex-1 text-[13px] text-stone-700 leading-snug pt-px">
+        {children}
+      </div>
+    </label>
+  );
+}
+
+/* ── Section wrapper ───────────────────────────────── */
+
+function Section({
+  title,
+  subtitle,
+  children,
+  noDivider = false,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  noDivider?: boolean;
+}) {
+  return (
+    <div className={`px-6 py-5 ${noDivider ? "" : "border-b border-stone-100"}`}>
+      <div className="mb-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-stone-800">
+          {title}
+        </p>
+        {subtitle && (
+          <p className="text-[11px] text-stone-400 italic mt-0.5 leading-snug">
+            {subtitle}
+          </p>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/* ── Party fields ──────────────────────────────────── */
+
 function PartyFields({
   label,
   value,
@@ -17,268 +135,213 @@ function PartyFields({
   onChange: (p: Party) => void;
 }) {
   return (
-    <div className="space-y-3">
-      <h3 className="font-semibold text-slate-600 text-xs uppercase tracking-wide">
+    <div className="space-y-4">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-700 border-b border-amber-100 pb-1.5">
         {label}
-      </h3>
+      </p>
       <div>
-        <label className="block text-xs font-medium text-slate-500 mb-1">
-          Company Name
-        </label>
-        <input
-          type="text"
+        <FieldLabel>Company Name</FieldLabel>
+        <TextInput
           value={value.company}
-          onChange={(e) => onChange({ ...value, company: e.target.value })}
+          onChange={(v) => onChange({ ...value, company: v })}
           placeholder="Acme Corp."
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-slate-500 mb-1">
-          Signatory Name
-        </label>
-        <input
-          type="text"
+        <FieldLabel>Signatory Name</FieldLabel>
+        <TextInput
           value={value.signatoryName}
-          onChange={(e) =>
-            onChange({ ...value, signatoryName: e.target.value })
-          }
+          onChange={(v) => onChange({ ...value, signatoryName: v })}
           placeholder="Jane Smith"
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-slate-500 mb-1">
-          Title
-        </label>
-        <input
-          type="text"
+        <FieldLabel>Title</FieldLabel>
+        <TextInput
           value={value.title}
-          onChange={(e) => onChange({ ...value, title: e.target.value })}
+          onChange={(v) => onChange({ ...value, title: v })}
           placeholder="Chief Executive Officer"
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-slate-500 mb-1">
-          Notice Address
-        </label>
-        <input
-          type="text"
+        <FieldLabel>Notice Address</FieldLabel>
+        <TextInput
           value={value.noticeAddress}
-          onChange={(e) =>
-            onChange({ ...value, noticeAddress: e.target.value })
-          }
+          onChange={(v) => onChange({ ...value, noticeAddress: v })}
           placeholder="jane@acme.com"
-          className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
         />
       </div>
     </div>
   );
 }
 
-function Section({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="border-b border-slate-200 px-5 py-4">
-      <div className="mb-3">
-        <p className="text-sm font-semibold text-slate-700">{title}</p>
-        {subtitle && (
-          <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
-        )}
-      </div>
-      {children}
-    </div>
-  );
-}
+/* ── Main form ─────────────────────────────────────── */
 
 export default function NDAForm({ value: data, onChange }: NDAFormProps) {
   const set = <K extends keyof NDAFormData>(key: K, v: NDAFormData[K]) =>
     onChange({ ...data, [key]: v });
 
   return (
-    <div className="pb-8">
+    <div className="pb-10">
+      {/* Form header */}
+      <div className="px-6 pt-6 pb-5 border-b border-stone-100">
+        <p className="text-[11px] text-stone-400 leading-relaxed">
+          Fill in the details below. The document preview updates&nbsp;live.
+        </p>
+      </div>
+
+      {/* Purpose */}
       <Section title="Purpose" subtitle="How Confidential Information may be used">
         <textarea
           value={data.purpose}
           onChange={(e) => set("purpose", e.target.value)}
           rows={3}
-          className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+          className="w-full bg-white border border-stone-200 rounded-sm px-3 py-2.5 text-[13px] text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600/15 transition-all duration-150 resize-none leading-relaxed"
         />
       </Section>
 
+      {/* Effective Date */}
       <Section title="Effective Date">
         <input
           type="date"
           value={data.effectiveDate}
           onChange={(e) => set("effectiveDate", e.target.value)}
-          className="border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          className="bg-transparent border-0 border-b border-stone-200 pb-2 pt-0.5 text-[13px] text-stone-800 focus:outline-none focus:border-amber-600 transition-colors duration-150"
         />
       </Section>
 
+      {/* MNDA Term */}
       <Section title="MNDA Term" subtitle="The length of this MNDA">
-        <div className="space-y-2">
-          <label className="flex items-start gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="mndaTermType"
-              checked={data.mndaTermType === "expires"}
-              onChange={() => set("mndaTermType", "expires")}
-              className="mt-0.5 text-indigo-600"
-            />
-            <div className="flex-1">
-              <span className="text-sm text-slate-700">Expires after</span>
-              {data.mndaTermType === "expires" && (
-                <div className="flex items-center gap-2 mt-1.5">
-                  <input
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={data.mndaTermYears}
-                    onChange={(e) =>
-                      set("mndaTermYears", Number(e.target.value))
-                    }
-                    className="w-16 border border-slate-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                  <span className="text-sm text-slate-500">
-                    year(s) from Effective Date
-                  </span>
-                </div>
-              )}
-            </div>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="mndaTermType"
-              checked={data.mndaTermType === "until_terminated"}
-              onChange={() => set("mndaTermType", "until_terminated")}
-              className="text-indigo-600"
-            />
-            <span className="text-sm text-slate-700">
-              Continues until terminated
-            </span>
-          </label>
+        <div className="space-y-3">
+          <RadioOption
+            name="mndaTermType"
+            checked={data.mndaTermType === "expires"}
+            onChange={() => set("mndaTermType", "expires")}
+          >
+            <span>Expires after</span>
+            {data.mndaTermType === "expires" && (
+              <div className="flex items-center gap-2 mt-2">
+                <NumberInput
+                  value={data.mndaTermYears}
+                  onChange={(v) => set("mndaTermYears", v)}
+                  min={1}
+                  max={10}
+                />
+                <span className="text-[12px] text-stone-500">
+                  year{data.mndaTermYears !== 1 ? "s" : ""} from Effective Date
+                </span>
+              </div>
+            )}
+          </RadioOption>
+          <RadioOption
+            name="mndaTermType"
+            checked={data.mndaTermType === "until_terminated"}
+            onChange={() => set("mndaTermType", "until_terminated")}
+          >
+            Continues until terminated
+          </RadioOption>
         </div>
       </Section>
 
+      {/* Term of Confidentiality */}
       <Section
         title="Term of Confidentiality"
         subtitle="How long Confidential Information is protected"
       >
-        <div className="space-y-2">
-          <label className="flex items-start gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="confidentialityTermType"
-              checked={data.confidentialityTermType === "years"}
-              onChange={() => set("confidentialityTermType", "years")}
-              className="mt-0.5 text-indigo-600"
-            />
-            <div className="flex-1">
-              <span className="text-sm text-slate-700">Limited period</span>
-              {data.confidentialityTermType === "years" && (
-                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  <input
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={data.confidentialityTermYears}
-                    onChange={(e) =>
-                      set("confidentialityTermYears", Number(e.target.value))
-                    }
-                    className="w-16 border border-slate-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                  <span className="text-sm text-slate-500">
-                    year(s) from Effective Date
-                  </span>
-                </div>
-              )}
-            </div>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="confidentialityTermType"
-              checked={data.confidentialityTermType === "perpetuity"}
-              onChange={() => set("confidentialityTermType", "perpetuity")}
-              className="text-indigo-600"
-            />
-            <span className="text-sm text-slate-700">In perpetuity</span>
-          </label>
-        </div>
-      </Section>
-
-      <Section title="Governing Law & Jurisdiction">
         <div className="space-y-3">
+          <RadioOption
+            name="confidentialityTermType"
+            checked={data.confidentialityTermType === "years"}
+            onChange={() => set("confidentialityTermType", "years")}
+          >
+            <span>Limited period</span>
+            {data.confidentialityTermType === "years" && (
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <NumberInput
+                  value={data.confidentialityTermYears}
+                  onChange={(v) => set("confidentialityTermYears", v)}
+                  min={1}
+                  max={10}
+                />
+                <span className="text-[12px] text-stone-500">
+                  year{data.confidentialityTermYears !== 1 ? "s" : ""} from Effective Date
+                </span>
+              </div>
+            )}
+          </RadioOption>
+          <RadioOption
+            name="confidentialityTermType"
+            checked={data.confidentialityTermType === "perpetuity"}
+            onChange={() => set("confidentialityTermType", "perpetuity")}
+          >
+            In perpetuity
+          </RadioOption>
+        </div>
+      </Section>
+
+      {/* Governing Law */}
+      <Section title="Governing Law & Jurisdiction">
+        <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">
-              Governing Law (State)
-            </label>
-            <input
-              type="text"
+            <FieldLabel>Governing Law (State)</FieldLabel>
+            <TextInput
               value={data.governingLawState}
-              onChange={(e) => set("governingLawState", e.target.value)}
+              onChange={(v) => set("governingLawState", v)}
               placeholder="Delaware"
-              className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">
-              Jurisdiction
-            </label>
-            <input
-              type="text"
+            <FieldLabel>Jurisdiction</FieldLabel>
+            <TextInput
               value={data.jurisdictionDescription}
-              onChange={(e) => set("jurisdictionDescription", e.target.value)}
+              onChange={(v) => set("jurisdictionDescription", v)}
               placeholder="courts located in New Castle, DE"
-              className="w-full border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
         </div>
       </Section>
 
+      {/* Parties */}
       <Section title="Parties" subtitle="Both signing parties">
         <div className="space-y-6">
-          <PartyFields
-            label="Party 1"
-            value={data.party1}
-            onChange={(p) => set("party1", p)}
-          />
-          <div className="border-t border-slate-200" />
-          <PartyFields
-            label="Party 2"
-            value={data.party2}
-            onChange={(p) => set("party2", p)}
-          />
+          <div className="rounded-sm bg-white/50 border border-stone-100 p-4">
+            <PartyFields
+              label="Party 1"
+              value={data.party1}
+              onChange={(p) => set("party1", p)}
+            />
+          </div>
+          <div className="rounded-sm bg-white/50 border border-stone-100 p-4">
+            <PartyFields
+              label="Party 2"
+              value={data.party2}
+              onChange={(p) => set("party2", p)}
+            />
+          </div>
         </div>
       </Section>
 
+      {/* Modifications */}
       <Section
         title="MNDA Modifications"
         subtitle="Optional — any changes to the standard terms"
+        noDivider
       >
         <textarea
           value={data.modifications}
           onChange={(e) => set("modifications", e.target.value)}
           rows={3}
           placeholder="e.g. Section 2(b) is modified to require approval from both parties' legal counsel before disclosure to contractors."
-          className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+          className="w-full bg-white border border-stone-200 rounded-sm px-3 py-2.5 text-[13px] text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600/15 transition-all duration-150 resize-none leading-relaxed"
         />
       </Section>
 
-      <div className="px-5 pt-4">
+      {/* Reset */}
+      <div className="px-6 pt-3">
         <button
           type="button"
           onClick={() => onChange(defaultFormData)}
-          className="text-xs text-slate-400 hover:text-slate-600 underline transition-colors"
+          className="text-[11px] text-stone-400 hover:text-stone-600 underline underline-offset-2 transition-colors duration-150"
         >
           Reset to defaults
         </button>
