@@ -4,7 +4,7 @@ import { useState } from "react";
 import NDAForm from "@/components/NDAForm";
 import NDAPreview from "@/components/NDAPreview";
 import { NDAFormData, defaultFormData } from "@/lib/types";
-import { downloadMarkdown } from "@/lib/generateDocument";
+import { downloadMarkdown, printDocument } from "@/lib/generateDocument";
 
 export default function Home() {
   const [formData, setFormData] = useState<NDAFormData>(defaultFormData);
@@ -54,7 +54,7 @@ export default function Home() {
             Export .md
           </button>
           <button
-            onClick={() => window.print()}
+            onClick={() => printDocument(formData)}
             className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white text-[12px] font-semibold px-3.5 py-1.5 rounded transition-colors duration-150"
           >
             <svg
@@ -78,7 +78,7 @@ export default function Home() {
       {/* ── Two-column layout ── */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left — Form */}
-        <div className="no-print w-[400px] shrink-0 overflow-y-auto scrollbar-form bg-[#f7f4ef] border-r border-stone-200">
+        <div className="no-print w-[480px] shrink-0 overflow-y-auto scrollbar-form bg-[#f7f4ef] border-r border-stone-200">
           <NDAForm value={formData} onChange={setFormData} />
         </div>
 

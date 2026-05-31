@@ -303,15 +303,15 @@ export default function NDAForm({ value: data, onChange }: NDAFormProps) {
 
       {/* Parties */}
       <Section title="Parties" subtitle="Both signing parties">
-        <div className="space-y-6">
-          <div className="rounded-sm bg-white/50 border border-stone-100 p-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-sm bg-white/50 border border-stone-100 p-3">
             <PartyFields
               label="Party 1"
               value={data.party1}
               onChange={(p) => set("party1", p)}
             />
           </div>
-          <div className="rounded-sm bg-white/50 border border-stone-100 p-4">
+          <div className="rounded-sm bg-white/50 border border-stone-100 p-3">
             <PartyFields
               label="Party 2"
               value={data.party2}
