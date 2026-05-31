@@ -3,27 +3,51 @@ import userEvent from "@testing-library/user-event";
 import Home from "@/app/page";
 import { downloadMarkdown, printDocument } from "@/lib/generateDocument";
 
-// Mock the side-effecting exports so tests don't open windows or create blobs
 jest.mock("@/lib/generateDocument", () => ({
   ...jest.requireActual("@/lib/generateDocument"),
   downloadMarkdown: jest.fn(),
   printDocument: jest.fn(),
 }));
 
-// next/font/google is only used in layout.tsx, not in page.tsx or its imports,
-// but mock it defensively in case the resolver traverses it.
 jest.mock("next/font/google", () => ({
   Playfair_Display: () => ({ variable: "--font-playfair", className: "" }),
   DM_Sans: () => ({ variable: "--font-dm-sans", className: "" }),
 }));
 
+const mockReplace = jest.fn();
+const mockPush = jest.fn();
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: mockReplace, push: mockPush }),
+}));
+
 beforeEach(() => {
   jest.clearAllMocks();
+  localStorage.clear();
+});
+
+/* ── Auth gate ───────────────────────────────────── */
+
+describe("Auth gate", () => {
+  it("redirects to /login when no auth token", () => {
+    render(<Home />);
+    expect(mockReplace).toHaveBeenCalledWith("/login");
+  });
+
+  it("renders the app when auth token is present", () => {
+    localStorage.setItem("auth_token", "test-token");
+    render(<Home />);
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(screen.getByText("Prelegal")).toBeInTheDocument();
+  });
 });
 
 /* ── Layout ─────────────────────────────────────── */
 
 describe("Home page layout", () => {
+  beforeEach(() => {
+    localStorage.setItem("auth_token", "test-token");
+  });
+
   it("renders the Prelegal brand name", () => {
     render(<Home />);
     expect(screen.getByText("Prelegal")).toBeInTheDocument();
@@ -50,7 +74,6 @@ describe("Home page layout", () => {
 
   it("renders the form panel (Purpose section visible)", () => {
     render(<Home />);
-    // "Purpose" appears in both the form heading and the preview cover page
     expect(screen.getAllByText("Purpose").length).toBeGreaterThan(0);
   });
 
@@ -65,11 +88,14 @@ describe("Home page layout", () => {
 /* ── Form ↔ Preview live update ─────────────────── */
 
 describe("Live preview updates", () => {
+  beforeEach(() => {
+    localStorage.setItem("auth_token", "test-token");
+  });
+
   it("updates the preview when governing law state changes", () => {
     render(<Home />);
     const stateInput = screen.getByPlaceholderText("Delaware");
     fireEvent.change(stateInput, { target: { value: "Texas" } });
-    // Texas should now appear in the document preview (cover page + clause 9)
     expect(screen.getAllByText(/Texas/).length).toBeGreaterThan(0);
   });
 
@@ -95,6 +121,10 @@ describe("Live preview updates", () => {
 /* ── Header action buttons ──────────────────────── */
 
 describe("Header action buttons", () => {
+  beforeEach(() => {
+    localStorage.setItem("auth_token", "test-token");
+  });
+
   it("calls downloadMarkdown with current formData when Export .md is clicked", async () => {
     const user = userEvent.setup();
     render(<Home />);
@@ -112,7 +142,6 @@ describe("Header action buttons", () => {
   it("passes the current formData to downloadMarkdown", async () => {
     const user = userEvent.setup();
     render(<Home />);
-    // Change a field first
     fireEvent.change(screen.getByPlaceholderText("Delaware"), {
       target: { value: "Nevada" },
     });

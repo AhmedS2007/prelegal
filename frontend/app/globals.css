@@ -9,10 +9,10 @@
     color: inherit;
   }
 
-  /* Amber accent for native form controls */
+  /* Accent color for native form controls */
   input[type="radio"],
   input[type="checkbox"] {
-    accent-color: #b45309;
+    accent-color: #ecad0a;
   }
 }
 

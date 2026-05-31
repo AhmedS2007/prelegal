@@ -16,8 +16,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Prelegal — Mutual NDA Creator",
-  description: "Create a Mutual Non-Disclosure Agreement in minutes",
+  title: "Prelegal — Legal Agreements, Simplified",
+  description: "Create professional legal agreements in minutes",
 };
 
 export default function RootLayout({

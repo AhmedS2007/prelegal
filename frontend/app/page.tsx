@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import NDAForm from "@/components/NDAForm";
 import NDAPreview from "@/components/NDAPreview";
 import { NDAFormData, defaultFormData } from "@/lib/types";
@@ -8,22 +9,34 @@ import { downloadMarkdown, printDocument } from "@/lib/generateDocument";
 
 export default function Home() {
   const [formData, setFormData] = useState<NDAFormData>(defaultFormData);
+  const [isAuthenticated] = useState<boolean>(
+    () => typeof window !== "undefined" && !!localStorage.getItem("auth_token")
+  );
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) return null;
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-stone-100">
       {/* ── Header ── */}
-      <header className="no-print bg-stone-950 shrink-0 flex items-center justify-between px-6 py-0 h-14">
+      <header className="no-print bg-[#032147] shrink-0 flex items-center justify-between px-6 py-0 h-14">
         {/* Wordmark */}
         <div className="flex items-center gap-3">
           <span
-            className="w-2.5 h-2.5 rounded-[2px] bg-amber-500 shrink-0"
+            className="w-2.5 h-2.5 rounded-[2px] bg-[#ecad0a] shrink-0"
             aria-hidden="true"
           />
           <div>
-            <span className="text-[10px] font-semibold tracking-[0.18em] uppercase text-amber-500 leading-none block">
+            <span className="text-[10px] font-semibold tracking-[0.18em] uppercase text-[#ecad0a] leading-none block">
               Prelegal
             </span>
-            <span className="text-[13px] font-medium text-stone-200 leading-tight block">
+            <span className="text-[13px] font-medium text-white/70 leading-tight block">
               Mutual NDA Creator
             </span>
           </div>
@@ -31,12 +44,12 @@ export default function Home() {
 
         {/* Actions */}
         <div className="flex items-center gap-2.5">
-          <span className="text-[10px] text-stone-600 tracking-wide mr-1">
+          <span className="text-[10px] text-[#888888] tracking-wide mr-1">
             Common Paper v1.0
           </span>
           <button
             onClick={() => downloadMarkdown(formData)}
-            className="flex items-center gap-1.5 border border-stone-700 hover:border-stone-500 text-stone-400 hover:text-stone-200 text-[12px] font-medium px-3.5 py-1.5 rounded transition-all duration-150"
+            className="flex items-center gap-1.5 border border-white/20 hover:border-white/40 text-[#888888] hover:text-white text-[12px] font-medium px-3.5 py-1.5 rounded transition-all duration-150"
           >
             <svg
               className="w-3 h-3"
@@ -55,7 +68,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => printDocument(formData)}
-            className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white text-[12px] font-semibold px-3.5 py-1.5 rounded transition-colors duration-150"
+            className="flex items-center gap-1.5 bg-[#753991] hover:bg-[#8b44a5] text-white text-[12px] font-semibold px-3.5 py-1.5 rounded transition-colors duration-150"
           >
             <svg
               className="w-3 h-3"

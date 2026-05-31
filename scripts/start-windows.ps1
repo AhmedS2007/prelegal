@@ -1,0 +1,3 @@
+Write-Host "Starting Prelegal..."
+docker compose up -d --build
+Write-Host "App running at http://localhost:8000"

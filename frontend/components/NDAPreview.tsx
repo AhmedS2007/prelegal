@@ -14,7 +14,7 @@ interface NDAPreviewProps {
 /* ── Highlight: amber "marker" for dynamic values ──── */
 function Hi({ children }: { children: React.ReactNode }) {
   return (
-    <mark className="bg-amber-100 text-amber-900 rounded-[2px] px-[3px] py-px font-medium not-italic">
+    <mark className="bg-[#ecad0a]/15 text-[#032147] rounded-[2px] px-[3px] py-px font-medium not-italic">
       {children}
     </mark>
   );
@@ -101,7 +101,7 @@ export default function NDAPreview({ data }: NDAPreviewProps) {
             <strong>Cover Page</strong>&rdquo;) and (2) the Common Paper Mutual NDA
             Standard Terms Version 1.0 (&ldquo;<strong>Standard Terms</strong>&rdquo;)
             identical to those posted at{" "}
-            <span className="font-sans text-amber-700 text-[11px]">
+            <span className="font-sans text-[#209dd7] text-[11px]">
               commonpaper.com/standards/mutual-nda/1.0
             </span>
             . Any modifications of the Standard Terms should be made on the Cover

@@ -11,7 +11,7 @@ interface NDAFormProps {
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label className="block text-[11px] font-medium text-stone-500 uppercase tracking-[0.07em] mb-1.5">
+    <label className="block text-[11px] font-medium text-[#888888] uppercase tracking-[0.07em] mb-1.5">
       {children}
     </label>
   );
@@ -34,7 +34,7 @@ function TextInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full bg-transparent border-0 border-b border-stone-200 pb-2 pt-0.5 text-[13px] text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-amber-600 transition-colors duration-150"
+      className="w-full bg-transparent border-0 border-b border-stone-200 pb-2 pt-0.5 text-[13px] text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-[#ecad0a] transition-colors duration-150"
     />
   );
 }
@@ -57,7 +57,7 @@ function NumberInput({
       onChange={(e) => onChange(Number(e.target.value))}
       min={min}
       max={max}
-      className="w-14 bg-white border border-stone-200 rounded text-center text-[13px] text-stone-800 py-1 px-2 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600/20 transition-all duration-150"
+      className="w-14 bg-white border border-stone-200 rounded text-center text-[13px] text-stone-800 py-1 px-2 focus:outline-none focus:border-[#ecad0a] focus:ring-1 focus:ring-[#ecad0a]/20 transition-all duration-150"
     />
   );
 }
@@ -83,8 +83,8 @@ function RadioOption({
           onChange={onChange}
           className="peer absolute inset-0 opacity-0 w-4 h-4 cursor-pointer"
         />
-        <div className="w-4 h-4 rounded-full border border-stone-300 bg-white peer-checked:border-amber-600 group-hover:border-stone-400 transition-colors duration-150" />
-        <div className="absolute top-[3px] left-[3px] w-[10px] h-[10px] rounded-full bg-amber-600 scale-0 peer-checked:scale-100 transition-transform duration-150" />
+        <div className="w-4 h-4 rounded-full border border-stone-300 bg-white peer-checked:border-[#ecad0a] group-hover:border-stone-400 transition-colors duration-150" />
+        <div className="absolute top-[3px] left-[3px] w-[10px] h-[10px] rounded-full bg-[#ecad0a] scale-0 peer-checked:scale-100 transition-transform duration-150" />
       </div>
       <div className="flex-1 text-[13px] text-stone-700 leading-snug pt-px">
         {children}
@@ -113,7 +113,7 @@ function Section({
           {title}
         </p>
         {subtitle && (
-          <p className="text-[11px] text-stone-400 italic mt-0.5 leading-snug">
+          <p className="text-[11px] text-[#888888] italic mt-0.5 leading-snug">
             {subtitle}
           </p>
         )}
@@ -136,7 +136,7 @@ function PartyFields({
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-700 border-b border-amber-100 pb-1.5">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#ecad0a] border-b border-[#ecad0a]/20 pb-1.5">
         {label}
       </p>
       <div>
@@ -185,7 +185,7 @@ export default function NDAForm({ value: data, onChange }: NDAFormProps) {
     <div className="pb-10">
       {/* Form header */}
       <div className="px-6 pt-6 pb-5 border-b border-stone-100">
-        <p className="text-[11px] text-stone-400 leading-relaxed">
+        <p className="text-[11px] text-[#888888] leading-relaxed">
           Fill in the details below. The document preview updates&nbsp;live.
         </p>
       </div>
@@ -196,7 +196,7 @@ export default function NDAForm({ value: data, onChange }: NDAFormProps) {
           value={data.purpose}
           onChange={(e) => set("purpose", e.target.value)}
           rows={3}
-          className="w-full bg-white border border-stone-200 rounded-sm px-3 py-2.5 text-[13px] text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600/15 transition-all duration-150 resize-none leading-relaxed"
+          className="w-full bg-white border border-stone-200 rounded-sm px-3 py-2.5 text-[13px] text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-[#ecad0a] focus:ring-1 focus:ring-[#ecad0a]/15 transition-all duration-150 resize-none leading-relaxed"
         />
       </Section>
 
@@ -206,7 +206,7 @@ export default function NDAForm({ value: data, onChange }: NDAFormProps) {
           type="date"
           value={data.effectiveDate}
           onChange={(e) => set("effectiveDate", e.target.value)}
-          className="bg-transparent border-0 border-b border-stone-200 pb-2 pt-0.5 text-[13px] text-stone-800 focus:outline-none focus:border-amber-600 transition-colors duration-150"
+          className="bg-transparent border-0 border-b border-stone-200 pb-2 pt-0.5 text-[13px] text-stone-800 focus:outline-none focus:border-[#ecad0a] transition-colors duration-150"
         />
       </Section>
 
@@ -332,7 +332,7 @@ export default function NDAForm({ value: data, onChange }: NDAFormProps) {
           onChange={(e) => set("modifications", e.target.value)}
           rows={3}
           placeholder="e.g. Section 2(b) is modified to require approval from both parties' legal counsel before disclosure to contractors."
-          className="w-full bg-white border border-stone-200 rounded-sm px-3 py-2.5 text-[13px] text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600/15 transition-all duration-150 resize-none leading-relaxed"
+          className="w-full bg-white border border-stone-200 rounded-sm px-3 py-2.5 text-[13px] text-stone-800 placeholder:text-stone-300 focus:outline-none focus:border-[#ecad0a] focus:ring-1 focus:ring-[#ecad0a]/15 transition-all duration-150 resize-none leading-relaxed"
         />
       </Section>
 
@@ -341,7 +341,7 @@ export default function NDAForm({ value: data, onChange }: NDAFormProps) {
         <button
           type="button"
           onClick={() => onChange(defaultFormData)}
-          className="text-[11px] text-stone-400 hover:text-stone-600 underline underline-offset-2 transition-colors duration-150"
+          className="text-[11px] text-[#888888] hover:text-stone-600 underline underline-offset-2 transition-colors duration-150"
         >
           Reset to defaults
         </button>
