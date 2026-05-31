@@ -170,7 +170,7 @@ export function generatePrintHTML(data: NDAFormData): string {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-@page { size: letter; margin: 0.8in 1.1in; }
+@page { size: letter; margin: 1.5cm; }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Playfair Display',Georgia,serif;font-size:10.5pt;color:#1c1917;line-height:1.65;background:#fff}
 .sans{font-family:'DM Sans',system-ui,sans-serif}
