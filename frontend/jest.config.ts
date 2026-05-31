@@ -1,0 +1,21 @@
+import type { Config } from "jest";
+import nextJest from "next/jest.js";
+
+const createJestConfig = nextJest({ dir: "./" });
+
+const customConfig: Config = {
+  testEnvironment: "jsdom",
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
+  moduleNameMapper: {
+    "^@/(.*)$": "<rootDir>/$1",
+  },
+  collectCoverageFrom: [
+    "app/**/*.{ts,tsx}",
+    "components/**/*.{ts,tsx}",
+    "lib/**/*.{ts,tsx}",
+    "!**/*.d.ts",
+  ],
+  testMatch: ["**/__tests__/**/*.[jt]s?(x)"],
+};
+
+export default createJestConfig(customConfig);
