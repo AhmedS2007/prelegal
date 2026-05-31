@@ -8,7 +8,7 @@ The available documents are covered in the catalog.json file in the project root
 
 @catalog.json
 
-The current implementation has a login screen (placeholder auth) and the Mutual NDA manual form with live preview.
+The current implementation has a placeholder login screen and the Mutual NDA manual form with live preview and PDF/markdown export. AI chat is planned for a future ticket.
 
 ## Development process
 
@@ -30,7 +30,7 @@ The entire project should be packaged into a Docker container.
 The backend should be in backend/ and be a uv project, using FastAPI.  
 The frontend should be in frontend/  
 The database should use SQLLite and be created from scratch each time the Docker container is brought up, allowing for a users table with sign up and sign in.  
-Consider statically building the frontend and serving it via FastAPI, if that will work.  
+The frontend is statically built (`output: 'export'`) and served by FastAPI from the `frontend/out/` directory.  
 There should be scripts in scripts/ for:  
 ```powershell
 # Windows
@@ -63,6 +63,7 @@ Backend available at http://localhost:8000
 - Auth gate on main page: redirects to /login if no token in localStorage
 - Start/stop scripts for Windows: scripts/start-windows.ps1, scripts/stop-windows.ps1
 - Color scheme updated to spec: #ecad0a, #209dd7, #753991, #032147, #888888
+- PDF save uses 1.5cm margins on all sides (`@page { margin: 1.5cm }` in generateDocument.ts)
 
 ### Current API Endpoints
 - `POST /api/auth/signup` - Placeholder signup (always returns success)
