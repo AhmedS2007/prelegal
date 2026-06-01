@@ -23,7 +23,7 @@ import {
   printGenericDocument,
 } from "@/lib/generateDocument";
 import { getToken, clearToken } from "@/lib/authApi";
-import { listDrafts, getDraft, saveDraft, updateDraft } from "@/lib/documentsApi";
+import { listDrafts, getDraft, saveDraft, updateDraft, SessionExpiredError } from "@/lib/documentsApi";
 
 const NDA_WELCOME =
   "Hi! I'm here to help you draft your Mutual NDA. Let's start — what are the names of the two companies involved in this agreement?";
@@ -47,12 +47,19 @@ export default function Home() {
   );
   const router = useRouter();
 
+  function handleSessionExpired() {
+    clearToken();
+    router.replace("/login");
+  }
+
   useEffect(() => {
     if (!isAuthenticated) {
       router.replace("/login");
       return;
     }
-    listDrafts().then(setDrafts).catch(() => {});
+    listDrafts()
+      .then(setDrafts)
+      .catch((err) => { if (err instanceof SessionExpiredError) handleSessionExpired(); });
     const token = getToken();
     if (token) {
       try {
@@ -84,7 +91,9 @@ export default function Home() {
     setGenericData(defaultGenericFormData);
     setChatMessages([]);
     setDraftId(null);
-    listDrafts().then(setDrafts).catch(() => {});
+    listDrafts()
+      .then(setDrafts)
+      .catch((err) => { if (err instanceof SessionExpiredError) handleSessionExpired(); });
   }
 
   async function handleRestore(id: number) {
@@ -92,21 +101,24 @@ export default function Home() {
       const draft = await getDraft(id);
       const docConfig = DOC_CONFIGS.find((d) => d.id === draft.document_type);
       if (!docConfig) return;
-      setSelectedDoc(docConfig);
-      if (docConfig.isNDA) {
-        setNdaData(draft.form_data as NDAFormData);
-      } else {
-        setGenericData(draft.form_data as GenericDocFormData);
-      }
       const welcome = docConfig.isNDA ? NDA_WELCOME : buildDocWelcome(docConfig);
+      if (docConfig.isNDA) {
+        setNdaData({ ...defaultFormData, ...(draft.form_data as Partial<NDAFormData>) });
+      } else {
+        setGenericData({ ...defaultGenericFormData, ...(draft.form_data as Partial<GenericDocFormData>) });
+      }
       setChatMessages(
         draft.chat_messages.length > 0
           ? draft.chat_messages
           : [{ role: "assistant", content: welcome }]
       );
       setDraftId(draft.id);
-    } catch {
-      // draft load failed — silently ignore
+      setSelectedDoc(docConfig);
+    } catch (err) {
+      if (err instanceof SessionExpiredError) {
+        handleSessionExpired();
+      }
+      // other failures (draft deleted, network error): silently ignore, stay on selector
     }
   }
 
@@ -138,7 +150,11 @@ export default function Home() {
       setDrafts(updatedDrafts);
       setSaveState("saved");
       setTimeout(() => setSaveState("idle"), 2000);
-    } catch {
+    } catch (err) {
+      if (err instanceof SessionExpiredError) {
+        handleSessionExpired();
+        return;
+      }
       setSaveState("error");
       setTimeout(() => setSaveState("idle"), 2000);
     }
