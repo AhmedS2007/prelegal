@@ -1,27 +1,37 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { NDAFormData, ChatMessage, ExtractedNDAFields, defaultFormData } from "@/lib/types";
+import {
+  GenericDocFormData,
+  ChatMessage,
+  ExtractedGenericFields,
+  defaultGenericFormData,
+} from "@/lib/types";
+import { DocConfig } from "@/lib/docConfig";
 import { sendChatMessage } from "@/lib/chatApi";
-import { mergeNDAFields } from "@/lib/mergeFields";
+import { mergeGenericFields } from "@/lib/mergeFields";
 
-interface NDAChatProps {
-  formData: NDAFormData;
-  onChange: (data: NDAFormData) => void;
+interface DocumentChatProps {
+  formData: GenericDocFormData;
+  docConfig: DocConfig;
+  onChange: (data: GenericDocFormData) => void;
 }
 
-const WELCOME =
-  "Hi! I'm here to help you draft your Mutual NDA. Let's start — what are the names of the two companies involved in this agreement?";
+function buildWelcome(docConfig: DocConfig): string {
+  return `Hi! I'm here to help you draft your ${docConfig.name}. I'll guide you through the key terms step by step. Let's start with the parties — what is the ${docConfig.party1Label}'s company name?`;
+}
 
-export default function NDAChat({ formData, onChange }: NDAChatProps) {
+export default function DocumentChat({
+  formData,
+  docConfig,
+  onChange,
+}: DocumentChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "assistant", content: WELCOME },
+    { role: "assistant", content: buildWelcome(docConfig) },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const formDataRef = useRef(formData);
-  // Only fields explicitly extracted by the AI — never includes defaultFormData values.
-  // This prevents the AI from thinking pre-filled defaults are user-confirmed answers.
   const extractedRef = useRef<Record<string, unknown>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -46,21 +56,20 @@ export default function NDAChat({ formData, onChange }: NDAChatProps) {
     setIsLoading(true);
 
     try {
-      const response = await sendChatMessage<ExtractedNDAFields>(
+      const response = await sendChatMessage<ExtractedGenericFields>(
         nextMessages,
         extractedRef.current,
-        "mnda"
+        docConfig.id
       );
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: response.message },
       ]);
       const { message: _msg, ...fields } = response;
-      // Accumulate only non-null extracted fields
       Object.entries(fields).forEach(([k, v]) => {
         if (v !== null && v !== undefined) extractedRef.current[k] = v;
       });
-      onChange(mergeNDAFields(formDataRef.current, fields));
+      onChange(mergeGenericFields(formDataRef.current, fields));
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -82,9 +91,9 @@ export default function NDAChat({ formData, onChange }: NDAChatProps) {
   };
 
   const handleReset = () => {
-    setMessages([{ role: "assistant", content: WELCOME }]);
+    setMessages([{ role: "assistant", content: buildWelcome(docConfig) }]);
     extractedRef.current = {};
-    onChange(defaultFormData);
+    onChange(defaultGenericFormData);
   };
 
   return (
@@ -97,7 +106,7 @@ export default function NDAChat({ formData, onChange }: NDAChatProps) {
               AI Assistant
             </p>
             <p className="text-[11px] text-[#888888] leading-relaxed mt-0.5">
-              Chat to fill in your NDA. The preview updates automatically.
+              Chat to fill in your document. The preview updates automatically.
             </p>
           </div>
           <button

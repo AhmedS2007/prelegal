@@ -40,6 +40,26 @@ export interface ExtractedNDAFields {
   party2?: ExtractedParty | null;
 }
 
+export interface GenericDocFormData {
+  party1: Party;
+  party2: Party;
+  effectiveDate: string;
+  term: string;
+  governingLawState: string;
+  jurisdictionDescription: string;
+  specialTerms: string;
+}
+
+export interface ExtractedGenericFields {
+  party1?: ExtractedParty | null;
+  party2?: ExtractedParty | null;
+  effectiveDate?: string | null;
+  term?: string | null;
+  governingLawState?: string | null;
+  jurisdictionDescription?: string | null;
+  specialTerms?: string | null;
+}
+
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
@@ -68,4 +88,14 @@ export const defaultFormData: NDAFormData = {
     title: "",
     noticeAddress: "",
   },
+};
+
+export const defaultGenericFormData: GenericDocFormData = {
+  party1: { company: "", signatoryName: "", title: "", noticeAddress: "" },
+  party2: { company: "", signatoryName: "", title: "", noticeAddress: "" },
+  effectiveDate: new Date().toISOString().split("T")[0],
+  term: "",
+  governingLawState: "",
+  jurisdictionDescription: "",
+  specialTerms: "",
 };

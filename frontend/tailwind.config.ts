@@ -17,7 +17,7 @@ const config: Config = {
       },
       boxShadow: {
         document:
-          "0 2px 8px rgba(0,0,0,0.06), 0 8px 40px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.04)",
+          "0 1px 3px rgba(0,0,0,0.05), 0 6px 20px rgba(0,0,0,0.09), 0 20px 60px rgba(0,0,0,0.13), 0 1px 0px rgba(255,255,255,0.6) inset",
       },
     },
   },

@@ -220,8 +220,9 @@ describe("generatePrintHTML", () => {
       ...fullData,
       purpose: '<script>alert("xss")</script>',
     });
-    expect(html).not.toContain("<script>");
-    expect(html).toContain("&lt;script&gt;");
+    // User-injected script tag should be escaped, not executed
+    expect(html).not.toContain('<script>alert(');
+    expect(html).toContain("&lt;script&gt;alert");
   });
 
   it("escapes ampersands in user input", () => {

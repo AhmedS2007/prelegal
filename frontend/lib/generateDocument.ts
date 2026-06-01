@@ -1,4 +1,5 @@
-import { NDAFormData } from "./types";
+import { NDAFormData, GenericDocFormData } from "./types";
+import { DocConfig } from "./docConfig";
 
 export function formatDate(isoDate: string): string {
   if (!isoDate) return "[Date]";
@@ -447,12 +448,12 @@ h2.terms-title{font-size:14pt;font-weight:700;letter-spacing:-.01em;margin-botto
 
 <p class="license">Common Paper Mutual Non-Disclosure Agreement Version 1.0 &mdash; free to use under CC BY 4.0</p>
 
+<script>(function(){function doPrint(){window.focus();window.print();}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){setTimeout(doPrint,250);});}else{setTimeout(doPrint,900);}})()</script>
 </body>
 </html>`;
 }
 
-export function printDocument(data: NDAFormData): void {
-  const html = generatePrintHTML(data);
+function openPrintWindow(html: string): void {
   const w = window.open("", "_blank", "width=900,height=700");
   if (!w) {
     alert("Please allow pop-ups for this site to enable PDF printing.");
@@ -461,11 +462,232 @@ export function printDocument(data: NDAFormData): void {
   w.document.open();
   w.document.write(html);
   w.document.close();
-  // Give fonts time to load before triggering print
-  w.onload = () => {
-    setTimeout(() => {
-      w.focus();
-      w.print();
-    }, 800);
-  };
+}
+
+export function printDocument(data: NDAFormData): void {
+  openPrintWindow(generatePrintHTML(data));
+}
+
+/* ── Generic document export ─────────────────────── */
+
+export function generateGenericMarkdown(
+  data: GenericDocFormData,
+  docConfig: DocConfig
+): string {
+  const effectiveDateStr = data.effectiveDate
+    ? formatDate(data.effectiveDate)
+    : "[Date]";
+  const p1 = data.party1;
+  const p2 = data.party2;
+
+  const partyRow = (label: string, p: typeof p1) =>
+    `### ${label}\n- **Company:** ${p.company || "[Company]"}\n- **Signatory:** ${p.signatoryName || "[Name]"}\n- **Title:** ${p.title || "[Title]"}\n- **Notice Address:** ${p.noticeAddress || "[Address]"}`;
+
+  return `# ${docConfig.name}
+
+## Cover Page
+
+${partyRow(docConfig.party1Label, p1)}
+
+${partyRow(docConfig.party2Label, p2)}
+
+### Effective Date
+${effectiveDateStr}
+
+### Term
+${data.term || "[Not specified]"}
+
+### Governing Law & Jurisdiction
+- **Governing Law:** ${data.governingLawState || "[State]"}
+- **Jurisdiction:** ${data.jurisdictionDescription || "[City/County, State]"}
+
+${data.specialTerms ? `### Special Terms\n${data.specialTerms}\n` : ""}
+---
+
+By signing this Cover Page, each party agrees to enter into this ${docConfig.name} as of the Effective Date.
+
+| | ${docConfig.party1Label} | ${docConfig.party2Label} |
+|:--- | :----: | :----: |
+| **Company** | ${p1.company || ""} | ${p2.company || ""} |
+| **Signature** | | |
+| **Print Name** | ${p1.signatoryName || ""} | ${p2.signatoryName || ""} |
+| **Title** | ${p1.title || ""} | ${p2.title || ""} |
+| **Notice Address** | ${p1.noticeAddress || ""} | ${p2.noticeAddress || ""} |
+| **Date** | | |
+
+*Common Paper ${docConfig.name} — Standard Terms incorporated by reference.*
+*Free to use under CC BY 4.0.*
+`;
+}
+
+export function downloadGenericMarkdown(
+  data: GenericDocFormData,
+  docConfig: DocConfig
+): void {
+  const content = generateGenericMarkdown(data, docConfig);
+  const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const p1 = data.party1.company || docConfig.party1Label;
+  const p2 = data.party2.company || docConfig.party2Label;
+  a.href = url;
+  a.download = `${docConfig.name.replace(/\s+/g, "-")}-${p1}-${p2}.md`
+    .replace(/[^a-zA-Z0-9.-]/g, "-")
+    .replace(/-+/g, "-");
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function generateGenericPrintHTML(
+  data: GenericDocFormData,
+  docConfig: DocConfig
+): string {
+  const date = data.effectiveDate ? formatDate(data.effectiveDate) : "[Date]";
+  const p1 = data.party1;
+  const p2 = data.party2;
+
+  function partyBlock(p: typeof p1): string {
+    const lines: string[] = [];
+    if (p.company) lines.push(`<div class="pb-name">${esc(p.company)}</div>`);
+    if (p.signatoryName) lines.push(`<div>${esc(p.signatoryName)}</div>`);
+    if (p.title) lines.push(`<div class="pb-sub">${esc(p.title)}</div>`);
+    if (p.noticeAddress)
+      lines.push(`<div class="pb-sub">${esc(p.noticeAddress)}</div>`);
+    return lines.length
+      ? lines.join("")
+      : `<span class="empty">Not specified</span>`;
+  }
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>${esc(docConfig.name)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+@page{size:letter;margin:1.5cm}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Playfair Display',Georgia,serif;font-size:10.5pt;color:#1c1917;line-height:1.65;background:#fff}
+.sans{font-family:'DM Sans',system-ui,sans-serif}
+.title-block{text-align:center;margin-bottom:22pt}
+h1{font-size:18pt;font-weight:700;letter-spacing:-.02em;line-height:1.2;margin-bottom:10pt}
+.rule-row{display:flex;align-items:center;gap:10pt}
+.rule-row hr{flex:1;border:none;border-top:1px solid #d6d3d1}
+.rule-label{font-family:'DM Sans',sans-serif;font-size:7pt;font-weight:600;text-transform:uppercase;letter-spacing:.18em;color:#a8a29e;white-space:nowrap}
+.preamble{font-size:9.5pt;color:#57534e;margin-bottom:18pt;line-height:1.6}
+.cover{border:2pt solid #1c1917;padding:14pt;margin-bottom:18pt}
+.cover-heading{font-family:'DM Sans',sans-serif;font-size:7pt;font-weight:700;text-transform:uppercase;letter-spacing:.22em;color:#78716c;border-bottom:1pt solid #e7e5e4;padding-bottom:8pt;margin-bottom:10pt}
+.cf{display:flex;gap:14pt;padding:7pt 0;border-bottom:1pt solid #f5f5f4}
+.cf:last-child{border-bottom:none}
+.cf-lbl{width:110pt;flex-shrink:0}
+.cf-name{font-family:'DM Sans',sans-serif;font-size:8.5pt;font-weight:600;color:#292524;line-height:1.3}
+.cf-hint{font-size:7.5pt;font-style:italic;color:#a8a29e;margin-top:1pt;line-height:1.3}
+.cf-val{flex:1;font-size:9.5pt;color:#292524;line-height:1.55}
+.pb-name{font-weight:600;font-size:10pt}
+.pb-sub{font-size:8.5pt;color:#78716c;margin-top:1pt}
+.sig-pre{font-size:9.5pt;font-style:italic;color:#57534e;margin-bottom:10pt}
+table.sig{width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:14pt}
+table.sig th{font-family:'DM Sans',sans-serif;font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#1c1917;padding:7pt 8pt;border-bottom:2pt solid #1c1917;text-align:center}
+table.sig th.rh{text-align:left}
+table.sig td.rh{font-family:'DM Sans',sans-serif;font-size:7.5pt;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#78716c;padding:7pt 8pt;border-bottom:1pt solid #f5f5f4;vertical-align:top}
+table.sig td.sc{padding:7pt 8pt;border-bottom:1pt solid #f5f5f4;text-align:center;vertical-align:top;font-size:9pt}
+.sl{display:block;border-bottom:1pt solid #d6d3d1;height:14pt}
+.license{font-family:'DM Sans',sans-serif;font-size:7.5pt;color:#a8a29e;text-align:center;margin:12pt 0}
+.std-note{font-family:'DM Sans',sans-serif;font-size:8.5pt;color:#78716c;text-align:center;margin-top:14pt;line-height:1.6;font-style:italic}
+.hi{font-weight:600;text-decoration:underline;text-decoration-color:#92400e;text-underline-offset:2pt;color:#1c1917}
+.empty{color:#c8c5c0}
+</style>
+</head>
+<body>
+
+<div class="title-block">
+  <h1>${esc(docConfig.name)}</h1>
+  <div class="rule-row">
+    <hr>
+    <span class="rule-label">Common Paper Standard Terms</span>
+    <hr>
+  </div>
+</div>
+
+<p class="preamble">
+  This ${esc(docConfig.name)} (the &ldquo;<b>Agreement</b>&rdquo;) consists of:
+  (1) this Cover Page setting out the key terms agreed between the
+  <b>${esc(docConfig.party1Label)}</b> and the <b>${esc(docConfig.party2Label)}</b>, and
+  (2) the Common Paper ${esc(docConfig.name)} Standard Terms incorporated by reference.
+</p>
+
+<div class="cover">
+  <div class="cover-heading">Cover Page</div>
+
+  <div class="cf">
+    <div class="cf-lbl"><div class="cf-name">${esc(docConfig.party1Label)}</div></div>
+    <div class="cf-val">${partyBlock(p1)}</div>
+  </div>
+
+  <div class="cf">
+    <div class="cf-lbl"><div class="cf-name">${esc(docConfig.party2Label)}</div></div>
+    <div class="cf-val">${partyBlock(p2)}</div>
+  </div>
+
+  <div class="cf">
+    <div class="cf-lbl"><div class="cf-name">Effective Date</div></div>
+    <div class="cf-val">${hi(date)}</div>
+  </div>
+
+  <div class="cf">
+    <div class="cf-lbl">
+      <div class="cf-name">Term</div>
+      <div class="cf-hint">Duration of the agreement</div>
+    </div>
+    <div class="cf-val">${data.term ? hi(data.term) : '<span class="empty">[Not specified]</span>'}</div>
+  </div>
+
+  <div class="cf">
+    <div class="cf-lbl"><div class="cf-name">Governing Law &amp; Jurisdiction</div></div>
+    <div class="cf-val">
+      <div><b>Governing Law:</b> ${esc(data.governingLawState) || '<span class="empty">[State]</span>'}</div>
+      <div style="margin-top:4pt"><b>Jurisdiction:</b> ${esc(data.jurisdictionDescription) || '<span class="empty">[City/County, State]</span>'}</div>
+    </div>
+  </div>
+
+  ${data.specialTerms ? `<div class="cf">
+    <div class="cf-lbl"><div class="cf-name">Special Terms</div></div>
+    <div class="cf-val">${esc(data.specialTerms)}</div>
+  </div>` : ""}
+</div>
+
+<p class="sig-pre">By signing this Cover Page, each party agrees to enter into this ${esc(docConfig.name)} as of the Effective Date.</p>
+
+<table class="sig">
+  <thead>
+    <tr>
+      <th class="rh" style="width:90pt"></th>
+      <th>${esc(p1.company) || esc(docConfig.party1Label)}</th>
+      <th>${esc(p2.company) || esc(docConfig.party2Label)}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="rh">Company</td>${sigCell(p1.company)}${sigCell(p2.company)}</tr>
+    <tr><td class="rh">Signature</td>${sigCell("")}${sigCell("")}</tr>
+    <tr><td class="rh">Print Name</td>${sigCell(p1.signatoryName)}${sigCell(p2.signatoryName)}</tr>
+    <tr><td class="rh">Title</td>${sigCell(p1.title)}${sigCell(p2.title)}</tr>
+    <tr><td class="rh">Notice Address</td>${sigCell(p1.noticeAddress)}${sigCell(p2.noticeAddress)}</tr>
+    <tr><td class="rh">Date</td>${sigCell("")}${sigCell("")}</tr>
+  </tbody>
+</table>
+
+<p class="license">Common Paper ${esc(docConfig.name)} &mdash; Standard Terms incorporated by reference &mdash; CC BY 4.0</p>
+<p class="std-note">The standard terms for this agreement are published by Common Paper and incorporated into this document by reference.</p>
+
+<script>(function(){function doPrint(){window.focus();window.print();}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){setTimeout(doPrint,250);});}else{setTimeout(doPrint,900);}})()</script>
+</body>
+</html>`;
+}
+
+export function printGenericDocument(
+  data: GenericDocFormData,
+  docConfig: DocConfig
+): void {
+  openPrintWindow(generateGenericPrintHTML(data, docConfig));
 }

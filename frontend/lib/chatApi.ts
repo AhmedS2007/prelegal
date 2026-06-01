@@ -1,17 +1,18 @@
-import { ChatMessage, ExtractedNDAFields } from "./types";
+import { ChatMessage } from "./types";
 
-export interface ChatApiResponse extends ExtractedNDAFields {
-  message: string;
-}
-
-export async function sendChatMessage(
+export async function sendChatMessage<T>(
   messages: ChatMessage[],
-  currentFields: Record<string, unknown>
-): Promise<ChatApiResponse> {
+  currentFields: Record<string, unknown>,
+  documentType: string = "mnda"
+): Promise<T & { message: string }> {
   const response = await fetch("/api/chat/message", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages, current_fields: currentFields }),
+    body: JSON.stringify({
+      messages,
+      current_fields: currentFields,
+      document_type: documentType,
+    }),
   });
   if (!response.ok) {
     throw new Error(`Chat API error: ${response.status}`);
