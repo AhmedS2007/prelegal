@@ -25,11 +25,17 @@ export function confidentialityTermDescription(data: NDAFormData): string {
   return `${data.confidentialityTermYears} year${data.confidentialityTermYears !== 1 ? "s" : ""} from Effective Date, but in the case of trade secrets until Confidential Information is no longer considered a trade secret under applicable laws`;
 }
 
+const DRAFT_DISCLAIMER_MD = `> **DRAFT — FOR DISCUSSION PURPOSES ONLY.** This document was generated with AI assistance and has not been reviewed by a licensed attorney. It does not constitute legal advice. All parties should seek qualified legal counsel before signing.
+
+---
+
+`;
+
 /* ── Markdown export ─────────────────────────────── */
 
 export function generateMarkdown(data: NDAFormData): string {
   const effectiveDateStr = formatDate(data.effectiveDate);
-  return `# Mutual Non-Disclosure Agreement
+  return `${DRAFT_DISCLAIMER_MD}# Mutual Non-Disclosure Agreement
 
 ## USING THIS MUTUAL NON-DISCLOSURE AGREEMENT
 
@@ -483,7 +489,7 @@ export function generateGenericMarkdown(
   const partyRow = (label: string, p: typeof p1) =>
     `### ${label}\n- **Company:** ${p.company || "[Company]"}\n- **Signatory:** ${p.signatoryName || "[Name]"}\n- **Title:** ${p.title || "[Title]"}\n- **Notice Address:** ${p.noticeAddress || "[Address]"}`;
 
-  return `# ${docConfig.name}
+  return `${DRAFT_DISCLAIMER_MD}# ${docConfig.name}
 
 ## Cover Page
 

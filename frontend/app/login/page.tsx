@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { signin, signup, setToken, getToken } from "@/lib/authApi";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,7 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (localStorage.getItem("auth_token")) {
+    if (getToken()) {
       router.replace("/");
     }
   }, [router]);
@@ -23,20 +24,12 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const res = await fetch(tab === "signin" ? "/api/auth/signin" : "/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        localStorage.setItem("auth_token", data.token ?? "placeholder");
-        router.push("/");
-      } else {
-        setError("Something went wrong. Please try again.");
-      }
-    } catch {
-      setError("Could not connect to server.");
+      const fn = tab === "signin" ? signin : signup;
+      const { token } = await fn(email, password);
+      setToken(token);
+      router.push("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -142,7 +135,7 @@ export default function LoginPage() {
           </div>
 
           <p className="text-center text-[11px] text-stone-400 mt-5">
-            Authentication is a placeholder — any credentials will work
+            Documents generated on this platform are drafts only and subject to legal review.
           </p>
         </div>
       </div>

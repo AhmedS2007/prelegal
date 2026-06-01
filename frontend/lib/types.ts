@@ -65,6 +65,26 @@ export interface ChatMessage {
   content: string;
 }
 
+export interface DraftMeta {
+  id: number;
+  document_type: string;
+  doc_name: string;
+  updated_at: string;
+}
+
+export interface DraftFull extends DraftMeta {
+  form_data: NDAFormData | GenericDocFormData;
+  chat_messages: ChatMessage[];
+  created_at: string;
+}
+
+export interface SaveDraftPayload {
+  document_type: string;
+  doc_name: string;
+  form_data: NDAFormData | GenericDocFormData;
+  chat_messages: ChatMessage[];
+}
+
 export const defaultFormData: NDAFormData = {
   purpose:
     "Evaluating whether to enter into a business relationship with the other party.",

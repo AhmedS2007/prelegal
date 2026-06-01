@@ -1,7 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import DocumentChat from "@/components/DocumentChat";
-import { defaultGenericFormData } from "@/lib/types";
+import { defaultGenericFormData, ChatMessage } from "@/lib/types";
 import * as chatApi from "@/lib/chatApi";
 import { DocConfig } from "@/lib/docConfig";
 
@@ -21,15 +22,30 @@ const csaConfig: DocConfig = {
 };
 
 const mockOnChange = jest.fn();
+const mockOnMessagesChange = jest.fn();
 
-const renderChat = () =>
-  render(
+const CSA_WELCOME =
+  "Hi! I'm here to help you draft your Cloud Service Agreement. I'll guide you through the key terms step by step. Let's start with the parties — what is the Provider's company name?";
+
+function DocWrapper({ initialMessages = [{ role: "assistant" as const, content: CSA_WELCOME }] }: { initialMessages?: ChatMessage[] }) {
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const handleMessages = (msgs: ChatMessage[]) => {
+    setMessages(msgs);
+    mockOnMessagesChange(msgs);
+  };
+  return (
     <DocumentChat
       formData={defaultGenericFormData}
       docConfig={csaConfig}
       onChange={mockOnChange}
+      messages={messages}
+      onMessagesChange={handleMessages}
     />
   );
+}
+
+const renderChat = (initialMessages?: ChatMessage[]) =>
+  render(<DocWrapper initialMessages={initialMessages} />);
 
 beforeEach(() => {
   jest.clearAllMocks();

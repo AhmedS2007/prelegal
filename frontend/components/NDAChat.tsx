@@ -8,18 +8,18 @@ import { mergeNDAFields } from "@/lib/mergeFields";
 interface NDAChatProps {
   formData: NDAFormData;
   onChange: (data: NDAFormData) => void;
+  messages: ChatMessage[];
+  onMessagesChange: (msgs: ChatMessage[]) => void;
 }
 
 const WELCOME =
   "Hi! I'm here to help you draft your Mutual NDA. Let's start — what are the names of the two companies involved in this agreement?";
 
-export default function NDAChat({ formData, onChange }: NDAChatProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "assistant", content: WELCOME },
-  ]);
+export default function NDAChat({ formData, onChange, messages, onMessagesChange }: NDAChatProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const formDataRef = useRef(formData);
+  const messagesRef = useRef(messages);
   // Only fields explicitly extracted by the AI — never includes defaultFormData values.
   // This prevents the AI from thinking pre-filled defaults are user-confirmed answers.
   const extractedRef = useRef<Record<string, unknown>>({});
@@ -28,6 +28,10 @@ export default function NDAChat({ formData, onChange }: NDAChatProps) {
   useEffect(() => {
     formDataRef.current = formData;
   }, [formData]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -41,7 +45,7 @@ export default function NDAChat({ formData, onChange }: NDAChatProps) {
       ...messages,
       { role: "user", content: text },
     ];
-    setMessages(nextMessages);
+    onMessagesChange(nextMessages);
     setInput("");
     setIsLoading(true);
 
@@ -51,8 +55,8 @@ export default function NDAChat({ formData, onChange }: NDAChatProps) {
         extractedRef.current,
         "mnda"
       );
-      setMessages((prev) => [
-        ...prev,
+      onMessagesChange([
+        ...messagesRef.current,
         { role: "assistant", content: response.message },
       ]);
       const { message: _msg, ...fields } = response;
@@ -62,8 +66,8 @@ export default function NDAChat({ formData, onChange }: NDAChatProps) {
       });
       onChange(mergeNDAFields(formDataRef.current, fields));
     } catch {
-      setMessages((prev) => [
-        ...prev,
+      onMessagesChange([
+        ...messagesRef.current,
         {
           role: "assistant",
           content: "Sorry, something went wrong. Please try again.",
@@ -82,7 +86,7 @@ export default function NDAChat({ formData, onChange }: NDAChatProps) {
   };
 
   const handleReset = () => {
-    setMessages([{ role: "assistant", content: WELCOME }]);
+    onMessagesChange([{ role: "assistant", content: WELCOME }]);
     extractedRef.current = {};
     onChange(defaultFormData);
   };

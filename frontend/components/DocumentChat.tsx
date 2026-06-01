@@ -15,6 +15,8 @@ interface DocumentChatProps {
   formData: GenericDocFormData;
   docConfig: DocConfig;
   onChange: (data: GenericDocFormData) => void;
+  messages: ChatMessage[];
+  onMessagesChange: (msgs: ChatMessage[]) => void;
 }
 
 function buildWelcome(docConfig: DocConfig): string {
@@ -25,19 +27,23 @@ export default function DocumentChat({
   formData,
   docConfig,
   onChange,
+  messages,
+  onMessagesChange,
 }: DocumentChatProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: "assistant", content: buildWelcome(docConfig) },
-  ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const formDataRef = useRef(formData);
+  const messagesRef = useRef(messages);
   const extractedRef = useRef<Record<string, unknown>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     formDataRef.current = formData;
   }, [formData]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -51,7 +57,7 @@ export default function DocumentChat({
       ...messages,
       { role: "user", content: text },
     ];
-    setMessages(nextMessages);
+    onMessagesChange(nextMessages);
     setInput("");
     setIsLoading(true);
 
@@ -61,8 +67,8 @@ export default function DocumentChat({
         extractedRef.current,
         docConfig.id
       );
-      setMessages((prev) => [
-        ...prev,
+      onMessagesChange([
+        ...messagesRef.current,
         { role: "assistant", content: response.message },
       ]);
       const { message: _msg, ...fields } = response;
@@ -71,8 +77,8 @@ export default function DocumentChat({
       });
       onChange(mergeGenericFields(formDataRef.current, fields));
     } catch {
-      setMessages((prev) => [
-        ...prev,
+      onMessagesChange([
+        ...messagesRef.current,
         {
           role: "assistant",
           content: "Sorry, something went wrong. Please try again.",
@@ -91,7 +97,7 @@ export default function DocumentChat({
   };
 
   const handleReset = () => {
-    setMessages([{ role: "assistant", content: buildWelcome(docConfig) }]);
+    onMessagesChange([{ role: "assistant", content: buildWelcome(docConfig) }]);
     extractedRef.current = {};
     onChange(defaultGenericFormData);
   };
