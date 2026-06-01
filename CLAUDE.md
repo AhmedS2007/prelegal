@@ -8,7 +8,7 @@ The available documents are covered in the catalog.json file in the project root
 
 @catalog.json
 
-The current implementation has a placeholder login screen and the Mutual NDA manual form with live preview and PDF/markdown export. AI chat is planned for a future ticket.
+The current implementation has a placeholder login screen and a full AI-powered document drafting interface supporting all 12 Common Paper document types. Users select a document from a catalog grid, then chat with an AI assistant that collects field values conversationally using a single structured-output LLM call (Cerebras via OpenRouter). The document preview updates automatically after each exchange, and completed documents can be exported as PDF or markdown.
 
 ## Development process
 
@@ -65,9 +65,45 @@ Backend available at http://localhost:8000
 - Color scheme updated to spec: #ecad0a, #209dd7, #753991, #032147, #888888
 - PDF save uses 1.5cm margins on all sides (`@page { margin: 1.5cm }` in generateDocument.ts)
 
+### Completed (PL-6)
+- Manual NDA form replaced with freeform AI chat panel (left column)
+- Single structured-output LLM call per message returns both the assistant reply and extracted NDA field values (`ChatResponse` Pydantic model)
+- `POST /api/chat/message` backend endpoint using litellm + Cerebras via OpenRouter
+- Null-safe field merge (`mergeFields.ts`): only non-null AI-extracted values overwrite existing formData; defaultFormData values are never sent to the AI as pre-answered
+- System prompt guides the AI through all field groups in order: parties → basics (purpose, date, governing law) → terms (MNDA term, confidentiality term) → modifications
+- Chat resets on page refresh (no persistence); Reset button clears chat and form
+- PDF and markdown export unchanged; globals.css print margins corrected to 1.5cm uniform
+- Jest test suite: mergeFields unit tests, NDAChat component tests, updated page tests (150 total)
+- Backend pytest suite: 6 tests for chat endpoint with mocked litellm
+
+### Completed (PL-7)
+- Document selector landing page: catalog grid showing all 12 Common Paper document types; users pick before drafting
+- Mutual NDA keeps full custom chat + preview UI (`NDAChat`, `NDAPreview`); all other 11 document types use generic `DocumentChat` + `DocumentPreview` components
+- Generic cover-page schema: parties (company, signatory, title, address), effective date, term, governing law, jurisdiction, special terms
+- Backend `chat.py` routes by `document_type`: NDA uses `ChatResponse` (full NDA schema); other documents use `GenericChatResponse` with per-document system prompts and tailored party labels (Provider/Customer, Covered Entity/Business Associate, etc.)
+- `docConfig.ts` maps all 12 catalog entries to document type IDs, party labels, and NDA flag
+- Chat asks exactly ONE question at a time for all document types
+- PDF print timing fixed: uses `document.fonts.ready` promise, script at end of `<body>`
+- Improved document preview panel contrast and paper shadow depth
+- Jest test suite: 188 tests (mergeFields, NDAChat, DocumentChat, DocumentPreview, DocumentSelector, page, generateDocument, types)
+- Backend pytest suite: 12 tests for chat endpoint (6 NDA + 6 generic document types)
+
 ### Current API Endpoints
 - `POST /api/auth/signup` - Placeholder signup (always returns success)
 - `POST /api/auth/signin` - Placeholder signin (always returns success + token)
 - `POST /api/auth/signout` - Placeholder signout
 - `GET /api/auth/me` - Returns null user
 - `GET /api/health` - Health check
+- `POST /api/chat/message` - AI chat: accepts `{messages, current_fields, document_type}`, returns `ChatResponse` (NDA) or `GenericChatResponse` (all other document types) with assistant message and extracted fields
+
+### Key Frontend Files
+- `frontend/lib/docConfig.ts` - Document type registry (12 entries with IDs, labels, NDA flag)
+- `frontend/lib/types.ts` - `NDAFormData`, `GenericDocFormData`, `ExtractedNDAFields`, `ExtractedGenericFields`
+- `frontend/lib/mergeFields.ts` - `mergeNDAFields`, `mergeGenericFields` (null-safe field merge)
+- `frontend/lib/chatApi.ts` - Generic `sendChatMessage<T>` with `document_type` param
+- `frontend/components/DocumentSelector.tsx` - Catalog grid, triggers document selection
+- `frontend/components/DocumentChat.tsx` - Generic AI chat for non-NDA documents
+- `frontend/components/DocumentPreview.tsx` - Generic cover-page preview for non-NDA documents
+- `frontend/components/NDAChat.tsx` - Full NDA-specific AI chat
+- `frontend/components/NDAPreview.tsx` - Full NDA-specific document preview
+- `frontend/lib/generateDocument.ts` - PDF/markdown generators for both NDA and generic docs
