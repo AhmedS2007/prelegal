@@ -8,7 +8,7 @@ The available documents are covered in the catalog.json file in the project root
 
 @catalog.json
 
-The current implementation has a placeholder login screen and a full AI-powered document drafting interface supporting all 12 Common Paper document types. Users select a document from a catalog grid, then chat with an AI assistant that collects field values conversationally using a single structured-output LLM call (Cerebras via OpenRouter). The document preview updates automatically after each exchange, and completed documents can be exported as PDF or markdown.
+The current implementation has real authentication (bcrypt + JWT), a full AI-powered document drafting interface supporting all 12 Common Paper document types, and per-user document history. Users sign up or sign in, select a document from a catalog grid, then chat with an AI assistant that collects field values conversationally using a single structured-output LLM call (Cerebras via OpenRouter). The document preview updates automatically after each exchange. Users can save drafts, retrieve them from the selector screen, and export completed documents as PDF or markdown.
 
 ## Development process
 
@@ -29,7 +29,7 @@ There is an OPENROUTER_API_KEY in the .env file in the project root.
 The entire project should be packaged into a Docker container.  
 The backend should be in backend/ and be a uv project, using FastAPI.  
 The frontend should be in frontend/  
-The database should use SQLLite and be created from scratch each time the Docker container is brought up, allowing for a users table with sign up and sign in.  
+The database should use SQLite and be created from scratch each time the Docker container is brought up, with a `users` table and a `documents` table. `JWT_SECRET` must be set in `.env` for tokens to survive container restarts.  
 The frontend is statically built (`output: 'export'`) and served by FastAPI from the `frontend/out/` directory.  
 There should be scripts in scripts/ for:  
 ```powershell
@@ -88,22 +88,55 @@ Backend available at http://localhost:8000
 - Jest test suite: 188 tests (mergeFields, NDAChat, DocumentChat, DocumentPreview, DocumentSelector, page, generateDocument, types)
 - Backend pytest suite: 12 tests for chat endpoint (6 NDA + 6 generic document types)
 
+### Completed (PL-8)
+- Real signup/signin: bcrypt password hashing, 30-day JWT tokens, 409 on duplicate email, 401 on wrong password
+- `JWT_SECRET` in `.env` keeps tokens valid across container restarts
+- `documents` table in SQLite; fresh each container start (by design)
+- `POST /api/documents` — save a draft (authenticated)
+- `GET /api/documents` — list user's drafts (authenticated)
+- `GET /api/documents/{id}` — retrieve full draft fields + chat history (authenticated)
+- `PUT /api/documents/{id}` — update an existing draft (authenticated)
+- **Save Draft** button in workspace header; first click creates, subsequent clicks update
+- **My Saved Drafts** panel above the catalog grid; clicking a draft fully restores form fields and chat history
+- `SessionExpiredError` thrown on 401 from all document API calls; app redirects to `/login` immediately
+- Chat message state lifted to `page.tsx` so full conversation is saved/restored with each draft
+- Sign-out button and user email shown in header (selector screen)
+- Draft disclaimer amber banner on all preview screens (hidden when printing); disclaimer prepended to markdown exports
+- Auth placeholder notice removed from login page; real error messages surfaced
+- Backend pytest suite: 31 tests (9 auth, 10 documents, 12 chat)
+- Frontend Jest suite: 209 tests
+
 ### Current API Endpoints
-- `POST /api/auth/signup` - Placeholder signup (always returns success)
-- `POST /api/auth/signin` - Placeholder signin (always returns success + token)
-- `POST /api/auth/signout` - Placeholder signout
-- `GET /api/auth/me` - Returns null user
+- `POST /api/auth/signup` - Real signup: bcrypt hash, insert user, return JWT. 409 on duplicate email
+- `POST /api/auth/signin` - Real signin: verify bcrypt hash, return JWT. 401 on mismatch
+- `POST /api/auth/signout` - Stateless signout (client drops token)
+- `GET /api/auth/me` - Returns `{user: {id, email}}` for authenticated user
 - `GET /api/health` - Health check
-- `POST /api/chat/message` - AI chat: accepts `{messages, current_fields, document_type}`, returns `ChatResponse` (NDA) or `GenericChatResponse` (all other document types) with assistant message and extracted fields
+- `POST /api/chat/message` - AI chat: accepts `{messages, current_fields, document_type}`, returns `ChatResponse` (NDA) or `GenericChatResponse` (all other types)
+- `POST /api/documents` - Save a draft (requires Bearer token)
+- `GET /api/documents` - List authenticated user's drafts
+- `GET /api/documents/{id}` - Get full draft (ownership enforced; 404 if not owner)
+- `PUT /api/documents/{id}` - Update draft (ownership enforced)
+
+### Key Backend Files
+- `backend/prelegal/auth.py` - `hash_password`, `verify_password`, `create_access_token`, `decode_access_token`
+- `backend/prelegal/dependencies.py` - `get_current_user` FastAPI dependency (parses `Authorization: Bearer`)
+- `backend/prelegal/database.py` - SQLite init; drops and recreates `users` + `documents` on every startup
+- `backend/prelegal/routes/auth.py` - Auth routes
+- `backend/prelegal/routes/chat.py` - AI chat route with per-document-type system prompts
+- `backend/prelegal/routes/documents.py` - Draft CRUD routes
 
 ### Key Frontend Files
+- `frontend/lib/authApi.ts` - `getToken`/`setToken`/`clearToken`, `signin`, `signup`, `signout`
+- `frontend/lib/documentsApi.ts` - `saveDraft`, `updateDraft`, `listDrafts`, `getDraft`; throws `SessionExpiredError` on 401
 - `frontend/lib/docConfig.ts` - Document type registry (12 entries with IDs, labels, NDA flag)
-- `frontend/lib/types.ts` - `NDAFormData`, `GenericDocFormData`, `ExtractedNDAFields`, `ExtractedGenericFields`
+- `frontend/lib/types.ts` - `NDAFormData`, `GenericDocFormData`, `DraftMeta`, `DraftFull`, `SaveDraftPayload`
 - `frontend/lib/mergeFields.ts` - `mergeNDAFields`, `mergeGenericFields` (null-safe field merge)
-- `frontend/lib/chatApi.ts` - Generic `sendChatMessage<T>` with `document_type` param
-- `frontend/components/DocumentSelector.tsx` - Catalog grid, triggers document selection
-- `frontend/components/DocumentChat.tsx` - Generic AI chat for non-NDA documents
-- `frontend/components/DocumentPreview.tsx` - Generic cover-page preview for non-NDA documents
-- `frontend/components/NDAChat.tsx` - Full NDA-specific AI chat
-- `frontend/components/NDAPreview.tsx` - Full NDA-specific document preview
-- `frontend/lib/generateDocument.ts` - PDF/markdown generators for both NDA and generic docs
+- `frontend/lib/chatApi.ts` - `sendChatMessage<T>` with Bearer auth header
+- `frontend/app/page.tsx` - Main page: auth gate, document selector, workspace, save/restore draft logic
+- `frontend/components/DocumentSelector.tsx` - Catalog grid + My Saved Drafts panel
+- `frontend/components/DocumentChat.tsx` - Generic AI chat (messages prop controlled by page.tsx)
+- `frontend/components/DocumentPreview.tsx` - Generic cover-page preview with disclaimer banner
+- `frontend/components/NDAChat.tsx` - Full NDA-specific AI chat (messages prop controlled by page.tsx)
+- `frontend/components/NDAPreview.tsx` - Full NDA-specific document preview with disclaimer banner
+- `frontend/lib/generateDocument.ts` - PDF/markdown generators; draft disclaimer in markdown exports
