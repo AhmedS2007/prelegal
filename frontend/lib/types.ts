@@ -19,6 +19,32 @@ export interface NDAFormData {
   party2: Party;
 }
 
+export interface ExtractedParty {
+  company?: string | null;
+  signatoryName?: string | null;
+  title?: string | null;
+  noticeAddress?: string | null;
+}
+
+export interface ExtractedNDAFields {
+  purpose?: string | null;
+  effectiveDate?: string | null;
+  mndaTermType?: "expires" | "until_terminated" | null;
+  mndaTermYears?: number | null;
+  confidentialityTermType?: "years" | "perpetuity" | null;
+  confidentialityTermYears?: number | null;
+  governingLawState?: string | null;
+  jurisdictionDescription?: string | null;
+  modifications?: string | null;
+  party1?: ExtractedParty | null;
+  party2?: ExtractedParty | null;
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export const defaultFormData: NDAFormData = {
   purpose:
     "Evaluating whether to enter into a business relationship with the other party.",

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import NDAForm from "@/components/NDAForm";
+import NDAChat from "@/components/NDAChat";
 import NDAPreview from "@/components/NDAPreview";
 import { NDAFormData, defaultFormData } from "@/lib/types";
 import { downloadMarkdown, printDocument } from "@/lib/generateDocument";
@@ -90,9 +90,9 @@ export default function Home() {
 
       {/* ── Two-column layout ── */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left — Form */}
-        <div className="no-print w-[480px] shrink-0 overflow-y-auto scrollbar-form bg-[#f7f4ef] border-r border-stone-200">
-          <NDAForm value={formData} onChange={setFormData} />
+        {/* Left — Chat */}
+        <div className="no-print w-[480px] shrink-0 overflow-hidden flex flex-col bg-[#f7f4ef] border-r border-stone-200">
+          <NDAChat formData={formData} onChange={setFormData} />
         </div>
 
         {/* Right — Live document preview */}

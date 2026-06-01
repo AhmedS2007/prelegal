@@ -36,6 +36,8 @@
 
 /* ── Print ────────────────────────────────────────── */
 @media print {
+  @page { margin: 1.5cm; }
+
   .no-print {
     display: none !important;
   }
@@ -60,7 +62,7 @@
     width: 100% !important;
     max-width: none !important;
     margin: 0 !important;
-    padding: 0.5in 1in !important;
+    padding: 1.5cm !important;
     box-shadow: none !important;
     border-radius: 0 !important;
     background: white !important;
