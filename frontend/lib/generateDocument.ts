@@ -228,12 +228,9 @@ h2.terms-title{font-size:14pt;font-weight:700;letter-spacing:-.01em;margin-botto
 /* Dynamic value highlight → underline for print */
 .hi{font-weight:600;text-decoration:underline;text-decoration-color:#92400e;text-underline-offset:2pt;color:#1c1917}
 .empty{color:#c8c5c0}
-.disclaimer{font-family:'DM Sans',sans-serif;font-size:8pt;color:#92400e;background:#fffbeb;border:1pt solid #f59e0b;padding:8pt 10pt;margin-bottom:16pt;line-height:1.5}
 </style>
 </head>
 <body>
-
-<div class="disclaimer"><b>DRAFT — FOR DISCUSSION PURPOSES ONLY.</b> This document was generated with AI assistance and has not been reviewed by a licensed attorney. It does not constitute legal advice. All parties should seek qualified legal counsel before signing.</div>
 
 <div class="title-block">
   <h1>Mutual Non-Disclosure Agreement</h1>
@@ -606,12 +603,9 @@ table.sig td.sc{padding:7pt 8pt;border-bottom:1pt solid #f5f5f4;text-align:cente
 .std-note{font-family:'DM Sans',sans-serif;font-size:8.5pt;color:#78716c;text-align:center;margin-top:14pt;line-height:1.6;font-style:italic}
 .hi{font-weight:600;text-decoration:underline;text-decoration-color:#92400e;text-underline-offset:2pt;color:#1c1917}
 .empty{color:#c8c5c0}
-.disclaimer{font-family:'DM Sans',sans-serif;font-size:8pt;color:#92400e;background:#fffbeb;border:1pt solid #f59e0b;padding:8pt 10pt;margin-bottom:16pt;line-height:1.5}
 </style>
 </head>
 <body>
-
-<div class="disclaimer"><b>DRAFT — FOR DISCUSSION PURPOSES ONLY.</b> This document was generated with AI assistance and has not been reviewed by a licensed attorney. It does not constitute legal advice. All parties should seek qualified legal counsel before signing.</div>
 
 <div class="title-block">
   <h1>${esc(docConfig.name)}</h1>

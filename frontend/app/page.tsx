@@ -84,6 +84,7 @@ export default function Home() {
     setGenericData(defaultGenericFormData);
     setChatMessages([]);
     setDraftId(null);
+    listDrafts().then(setDrafts).catch(() => {});
   }
 
   async function handleRestore(id: number) {
