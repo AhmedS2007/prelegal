@@ -1,7 +1,8 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import { useState } from "react";
 import userEvent from "@testing-library/user-event";
 import NDAChat from "@/components/NDAChat";
-import { defaultFormData } from "@/lib/types";
+import { defaultFormData, ChatMessage } from "@/lib/types";
 import * as chatApi from "@/lib/chatApi";
 
 jest.mock("@/lib/chatApi");
@@ -10,9 +11,29 @@ const mockSend = chatApi.sendChatMessage as jest.MockedFunction<
 >;
 
 const mockOnChange = jest.fn();
+const mockOnMessagesChange = jest.fn();
 
-const renderChat = () =>
-  render(<NDAChat formData={defaultFormData} onChange={mockOnChange} />);
+const WELCOME =
+  "Hi! I'm here to help you draft your Mutual NDA. Let's start — what are the names of the two companies involved in this agreement?";
+
+function NDAWrapper({ initialMessages = [{ role: "assistant" as const, content: WELCOME }] }: { initialMessages?: ChatMessage[] }) {
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const handleMessages = (msgs: ChatMessage[]) => {
+    setMessages(msgs);
+    mockOnMessagesChange(msgs);
+  };
+  return (
+    <NDAChat
+      formData={defaultFormData}
+      onChange={mockOnChange}
+      messages={messages}
+      onMessagesChange={handleMessages}
+    />
+  );
+}
+
+const renderChat = (initialMessages?: ChatMessage[]) =>
+  render(<NDAWrapper initialMessages={initialMessages} />);
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -176,15 +197,12 @@ describe("NDAChat reset", () => {
     expect(mockOnChange).toHaveBeenCalledWith(defaultFormData);
   });
 
-  it("restores the welcome message after reset", async () => {
+  it("calls onMessagesChange with welcome message when Reset is clicked", async () => {
     const user = userEvent.setup();
     renderChat();
-    await user.type(screen.getByPlaceholderText(/Type your message/), "Hello");
-    await user.click(screen.getByRole("button", { name: /send/i }));
-    await waitFor(() => screen.getByText("Hello"));
     await user.click(screen.getByRole("button", { name: /reset/i }));
-    expect(
-      screen.getByText(/Let's start — what are the names/)
-    ).toBeInTheDocument();
+    expect(mockOnMessagesChange).toHaveBeenCalledWith([
+      { role: "assistant", content: WELCOME },
+    ]);
   });
 });

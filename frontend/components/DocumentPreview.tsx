@@ -93,6 +93,15 @@ export default function DocumentPreview({
 
   return (
     <div className="py-8 px-8 min-h-full print-full">
+      {/* Draft disclaimer — screen only */}
+      <div className="no-print max-w-[720px] mx-auto mb-4 bg-amber-50 border border-amber-200 rounded px-4 py-2.5 flex items-start gap-2.5">
+        <svg className="w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        <p className="text-[11px] text-amber-800 leading-relaxed">
+          <strong>Draft only.</strong> This document was generated with AI assistance and has not been reviewed by a licensed attorney. It does not constitute legal advice. All parties should seek qualified legal counsel before signing.
+        </p>
+      </div>
       <div className="bg-paper shadow-document rounded-[3px] print-full mx-auto max-w-[720px]">
         <div className="px-14 py-12 font-serif">
 

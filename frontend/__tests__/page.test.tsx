@@ -15,6 +15,21 @@ jest.mock("next/font/google", () => ({
   DM_Sans: () => ({ variable: "--font-dm-sans", className: "" }),
 }));
 
+jest.mock("@/lib/authApi", () => ({
+  getToken: jest.fn(() => null),
+  clearToken: jest.fn(),
+}));
+
+jest.mock("@/lib/documentsApi", () => ({
+  listDrafts: jest.fn().mockResolvedValue([]),
+  getDraft: jest.fn(),
+  saveDraft: jest.fn(),
+  updateDraft: jest.fn(),
+}));
+
+import * as authApi from "@/lib/authApi";
+const mockGetToken = authApi.getToken as jest.MockedFunction<typeof authApi.getToken>;
+
 jest.mock("@/components/NDAChat", () => ({
   __esModule: true,
   default: () => <div data-testid="nda-chat"><p>NDA AI Assistant</p></div>,
@@ -41,13 +56,19 @@ jest.mock("@/components/DocumentPreview", () => ({
 
 jest.mock("@/components/DocumentSelector", () => ({
   __esModule: true,
-  default: ({ onSelect }: { onSelect: (doc: { id: string; name: string; isNDA: boolean; party1Label: string; party2Label: string }) => void }) => (
+  default: ({ onSelect, onRestore }: {
+    onSelect: (doc: { id: string; name: string; isNDA: boolean; party1Label: string; party2Label: string; description: string; filename: string }) => void;
+    onRestore: (id: number) => void;
+  }) => (
     <div data-testid="document-selector">
-      <button onClick={() => onSelect({ id: "mnda", name: "Mutual Non-Disclosure Agreement", isNDA: true, party1Label: "Party 1", party2Label: "Party 2" })}>
+      <button onClick={() => onSelect({ id: "mnda", name: "Mutual Non-Disclosure Agreement", isNDA: true, party1Label: "Party 1", party2Label: "Party 2", description: "", filename: "" })}>
         Select NDA
       </button>
-      <button onClick={() => onSelect({ id: "csa", name: "Cloud Service Agreement", isNDA: false, party1Label: "Provider", party2Label: "Customer" })}>
+      <button onClick={() => onSelect({ id: "csa", name: "Cloud Service Agreement", isNDA: false, party1Label: "Provider", party2Label: "Customer", description: "", filename: "" })}>
         Select CSA
+      </button>
+      <button onClick={() => onRestore(1)}>
+        Restore Draft
       </button>
     </div>
   ),
@@ -61,6 +82,7 @@ jest.mock("next/navigation", () => ({
 beforeEach(() => {
   jest.clearAllMocks();
   localStorage.clear();
+  mockGetToken.mockReturnValue(null);
 });
 
 /* ── Auth gate ───────────────────────────────────── */
@@ -72,7 +94,7 @@ describe("Auth gate", () => {
   });
 
   it("renders the app when auth token is present", () => {
-    localStorage.setItem("auth_token", "test-token");
+    mockGetToken.mockReturnValue("test-token");
     render(<Home />);
     expect(mockReplace).not.toHaveBeenCalled();
     expect(screen.getByText("Prelegal")).toBeInTheDocument();
@@ -83,7 +105,7 @@ describe("Auth gate", () => {
 
 describe("Document selector", () => {
   beforeEach(() => {
-    localStorage.setItem("auth_token", "test-token");
+    mockGetToken.mockReturnValue("test-token");
   });
 
   it("shows document selector when no document is selected", () => {
@@ -101,13 +123,18 @@ describe("Document selector", () => {
     expect(screen.queryByTestId("nda-chat")).not.toBeInTheDocument();
     expect(screen.queryByTestId("nda-preview")).not.toBeInTheDocument();
   });
+
+  it("shows sign out button when on the selector screen", () => {
+    render(<Home />);
+    expect(screen.getByRole("button", { name: /sign out/i })).toBeInTheDocument();
+  });
 });
 
 /* ── NDA workspace ───────────────────────────────── */
 
 describe("NDA workspace", () => {
   beforeEach(() => {
-    localStorage.setItem("auth_token", "test-token");
+    mockGetToken.mockReturnValue("test-token");
   });
 
   it("shows NDA chat and preview after selecting NDA", async () => {
@@ -133,6 +160,13 @@ describe("NDA workspace", () => {
     expect(screen.getByRole("button", { name: /save pdf/i })).toBeInTheDocument();
   });
 
+  it("shows Save Draft button when a document is selected", async () => {
+    const user = userEvent.setup();
+    render(<Home />);
+    await user.click(screen.getByRole("button", { name: /select nda/i }));
+    expect(screen.getByRole("button", { name: /save draft/i })).toBeInTheDocument();
+  });
+
   it("returns to selector when 'Change document' is clicked", async () => {
     const user = userEvent.setup();
     render(<Home />);
@@ -146,7 +180,7 @@ describe("NDA workspace", () => {
 
 describe("Generic document workspace", () => {
   beforeEach(() => {
-    localStorage.setItem("auth_token", "test-token");
+    mockGetToken.mockReturnValue("test-token");
   });
 
   it("shows generic chat and preview after selecting a non-NDA doc", async () => {
@@ -171,5 +205,25 @@ describe("Generic document workspace", () => {
     await user.click(screen.getByRole("button", { name: /select csa/i }));
     expect(screen.getByRole("button", { name: /export .md/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /save pdf/i })).toBeInTheDocument();
+  });
+});
+
+/* ── Save draft ──────────────────────────────────── */
+
+describe("Save draft", () => {
+  beforeEach(() => {
+    mockGetToken.mockReturnValue("test-token");
+  });
+
+  it("shows 'Saved ✓' briefly after successful save", async () => {
+    const { saveDraft: mockSave } = await import("@/lib/documentsApi");
+    (mockSave as jest.Mock).mockResolvedValue({ id: 99, document_type: "mnda", doc_name: "Test", updated_at: new Date().toISOString() });
+    const user = userEvent.setup();
+    render(<Home />);
+    await user.click(screen.getByRole("button", { name: /select nda/i }));
+    await user.click(screen.getByRole("button", { name: /save draft/i }));
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /saved/i })).toBeInTheDocument();
+    });
   });
 });
