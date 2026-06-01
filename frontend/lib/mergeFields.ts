@@ -1,4 +1,11 @@
-import { NDAFormData, Party, ExtractedNDAFields, ExtractedParty } from "./types";
+import {
+  NDAFormData,
+  Party,
+  ExtractedNDAFields,
+  ExtractedParty,
+  GenericDocFormData,
+  ExtractedGenericFields,
+} from "./types";
 
 function mergeParty(current: Party, extracted: ExtractedParty): Party {
   return {
@@ -34,5 +41,27 @@ export function mergeNDAFields(
       extracted.party2 != null
         ? mergeParty(current.party2, extracted.party2)
         : current.party2,
+  };
+}
+
+export function mergeGenericFields(
+  current: GenericDocFormData,
+  extracted: ExtractedGenericFields
+): GenericDocFormData {
+  return {
+    party1:
+      extracted.party1 != null
+        ? mergeParty(current.party1, extracted.party1)
+        : current.party1,
+    party2:
+      extracted.party2 != null
+        ? mergeParty(current.party2, extracted.party2)
+        : current.party2,
+    effectiveDate: extracted.effectiveDate ?? current.effectiveDate,
+    term: extracted.term ?? current.term,
+    governingLawState: extracted.governingLawState ?? current.governingLawState,
+    jurisdictionDescription:
+      extracted.jurisdictionDescription ?? current.jurisdictionDescription,
+    specialTerms: extracted.specialTerms ?? current.specialTerms,
   };
 }

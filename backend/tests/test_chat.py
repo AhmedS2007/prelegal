@@ -108,3 +108,100 @@ def test_chat_message_invalid_body_returns_422():
         json={"wrong_field": "oops"},
     )
     assert response.status_code == 422
+
+
+# ── Generic document type tests ───────────────────────────────────────────────
+
+def test_generic_doc_returns_200():
+    with patch("prelegal.routes.chat.completion") as mock_comp:
+        mock_comp.return_value = _mock_completion("What is the Provider's company name?")
+        response = client.post(
+            "/api/chat/message",
+            json={
+                "messages": [{"role": "user", "content": "Hi"}],
+                "current_fields": {},
+                "document_type": "csa",
+            },
+        )
+    assert response.status_code == 200
+
+
+def test_generic_doc_returns_message():
+    with patch("prelegal.routes.chat.completion") as mock_comp:
+        mock_comp.return_value = _mock_completion("What is the Provider's company name?")
+        response = client.post(
+            "/api/chat/message",
+            json={
+                "messages": [{"role": "user", "content": "Hi"}],
+                "current_fields": {},
+                "document_type": "csa",
+            },
+        )
+    assert response.json()["message"] == "What is the Provider's company name?"
+
+
+def test_generic_doc_returns_extracted_fields():
+    with patch("prelegal.routes.chat.completion") as mock_comp:
+        mock_comp.return_value = _mock_completion(
+            "Got it!",
+            party1={"company": "Acme", "signatoryName": None, "title": None, "noticeAddress": None},
+            effectiveDate="2026-01-01",
+            term="1 year",
+        )
+        response = client.post(
+            "/api/chat/message",
+            json={
+                "messages": [{"role": "user", "content": "Acme, starting January 2026, 1 year"}],
+                "current_fields": {},
+                "document_type": "csa",
+            },
+        )
+    data = response.json()
+    assert data["party1"]["company"] == "Acme"
+    assert data["effectiveDate"] == "2026-01-01"
+    assert data["term"] == "1 year"
+
+
+def test_generic_doc_includes_doc_name_in_system_prompt():
+    with patch("prelegal.routes.chat.completion") as mock_comp:
+        mock_comp.return_value = _mock_completion("Hi!")
+        client.post(
+            "/api/chat/message",
+            json={
+                "messages": [{"role": "user", "content": "Hi"}],
+                "current_fields": {},
+                "document_type": "dpa",
+            },
+        )
+    system_prompt = mock_comp.call_args.kwargs["messages"][0]["content"]
+    assert "Data Processing Agreement" in system_prompt
+
+
+def test_mnda_still_uses_nda_specific_prompt():
+    with patch("prelegal.routes.chat.completion") as mock_comp:
+        mock_comp.return_value = _mock_completion("Hi!")
+        client.post(
+            "/api/chat/message",
+            json={
+                "messages": [{"role": "user", "content": "Hi"}],
+                "current_fields": {},
+                "document_type": "mnda",
+            },
+        )
+    system_prompt = mock_comp.call_args.kwargs["messages"][0]["content"]
+    assert "Mutual Non-Disclosure Agreement" in system_prompt
+    assert "mndaTermType" in system_prompt
+
+
+def test_unknown_doc_type_returns_200():
+    with patch("prelegal.routes.chat.completion") as mock_comp:
+        mock_comp.return_value = _mock_completion("How can I help?")
+        response = client.post(
+            "/api/chat/message",
+            json={
+                "messages": [{"role": "user", "content": "Hi"}],
+                "current_fields": {},
+                "document_type": "unknown-doc-xyz",
+            },
+        )
+    assert response.status_code == 200
