@@ -72,7 +72,7 @@ describe("NDAChat sending messages", () => {
     expect(screen.getByText("Acme and Globex")).toBeInTheDocument();
   });
 
-  it("calls sendChatMessage with the conversation and current fields", async () => {
+  it("calls sendChatMessage with the conversation and only AI-extracted fields (not defaults)", async () => {
     const user = userEvent.setup();
     renderChat();
     await user.type(screen.getByPlaceholderText(/Type your message/), "Hello");
@@ -80,7 +80,8 @@ describe("NDAChat sending messages", () => {
     expect(mockSend).toHaveBeenCalledTimes(1);
     const [messages, fields] = mockSend.mock.calls[0];
     expect(messages.at(-1)).toEqual({ role: "user", content: "Hello" });
-    expect(fields).toMatchObject(defaultFormData);
+    // On the first message, extracted fields are empty — defaultFormData values are NOT sent
+    expect(fields).toEqual({});
   });
 
   it("displays the AI response after receiving it", async () => {

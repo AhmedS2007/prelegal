@@ -20,6 +20,9 @@ export default function NDAChat({ formData, onChange }: NDAChatProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const formDataRef = useRef(formData);
+  // Only fields explicitly extracted by the AI — never includes defaultFormData values.
+  // This prevents the AI from thinking pre-filled defaults are user-confirmed answers.
+  const extractedRef = useRef<Record<string, unknown>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,13 +48,18 @@ export default function NDAChat({ formData, onChange }: NDAChatProps) {
     try {
       const response = await sendChatMessage(
         nextMessages,
-        formDataRef.current as unknown as Record<string, unknown>
+        extractedRef.current
       );
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: response.message },
       ]);
-      onChange(mergeNDAFields(formDataRef.current, response));
+      const { message: _msg, ...fields } = response;
+      // Accumulate only non-null extracted fields
+      Object.entries(fields).forEach(([k, v]) => {
+        if (v !== null && v !== undefined) extractedRef.current[k] = v;
+      });
+      onChange(mergeNDAFields(formDataRef.current, fields));
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -74,6 +82,7 @@ export default function NDAChat({ formData, onChange }: NDAChatProps) {
 
   const handleReset = () => {
     setMessages([{ role: "assistant", content: WELCOME }]);
+    extractedRef.current = {};
     onChange(defaultFormData);
   };
 
